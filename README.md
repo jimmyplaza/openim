@@ -4,6 +4,7 @@
 - `通过` [添加好友]taobao.openim.users.add
 - `通过` [更新好友]taobao.openim.users.update
 - `通过` [删除好友]taobao.openim.users.delet
+- `通过` [服務端推播]taobao.openim.immsg.push
 
 ## 环境
    mac golang
