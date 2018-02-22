@@ -4,6 +4,7 @@ const (
 	OpenImUserAdd    string = "taobao.openim.users.add"
 	OpenImUserUpdate string = "taobao.openim.users.update"
 	OpenImUserDelete string = "taobao.openim.users.delete"
+	OpenImMsgPush    string = "taobao.openim.immsg.push"
 )
 
 var AppKey string

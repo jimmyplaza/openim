@@ -3,9 +3,24 @@ package aliim
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
+// IM Push Msg
+type ImMsgInfo struct {
+	From_user string   `json:"from_user"`
+	To_users  []string `json:"to_users"`
+	Context   string   `json:"context"`
+	Msg_type  int      `json:"msg_type"`
+}
+
+type ImPushResponse struct {
+	Msgid      int    `json:"msgid"`
+	Request_id string `json:"request_id"`
+}
+
+// IM User Add
 type ImUserInfo struct {
 	Userid   string `json:"userid"`
 	Password string `json:"password"`
@@ -28,6 +43,7 @@ type UserAddResponse struct {
 	FailMsg FailMsg `json:"fail_msg"`
 }
 
+// IM User Del
 type DeleteMsg struct {
 	Msg []string `json:"string"`
 }
@@ -44,6 +60,44 @@ func getCommonParams() map[string]string {
 	params["timestamp"] = time.Now().Format("2006-01-02 15:04:05")
 	params["v"] = "2.0"
 	return params
+}
+
+// 标准消息发送
+func ServerMsgPush(imMsgInfo ImMsgInfo) (success bool, response string) {
+	params := getCommonParams()
+	params["method"] = OpenImMsgPush
+
+	result, err := json.Marshal(imMsgInfo)
+	if err != nil {
+		return false, err.Error()
+	}
+	params["immsg"] = string(result)
+
+	succ, resData := IMPost(params)
+
+	if succ == false {
+		return false, string(resData)
+	}
+
+	type Result struct {
+		Result ImPushResponse `json:"openim_immsg_push_response"`
+	}
+	var resultResponse Result
+
+	log.Println("resData   " + string(resData))
+	err = json.Unmarshal(resData, &resultResponse)
+	log.Println(err)
+	if err != nil {
+		log.Println(err)
+		return false, err.Error()
+	}
+	log.Println(resultResponse)
+
+	if resultResponse.Result.Msgid == 0 {
+		return false, "push fail"
+	}
+	return true, "push success"
+
 }
 
 // 导入用户
@@ -80,7 +134,7 @@ func SendAddUsers(imUserInfos []ImUserInfo) (success bool, response string) {
 		return false, err.Error()
 	}
 
-	fmt.Println("resData   " + string(resData))
+	log.Println("resData   " + string(resData))
 	failMsg := resultResponse.Result.FailMsg
 	if len(failMsg.FailMsg) <= 0 {
 		return true, "add success"
@@ -105,7 +159,7 @@ func SendDeleteUsers(userids string) (success bool, response string) {
 	type Result struct {
 		UserDeleteResponse UserDeleteResponse `json:"openim_users_delete_response"`
 	}
-	fmt.Println("resData   " + string(resData))
+	log.Println("resData   " + string(resData))
 	var resultResponse Result
 	err := json.Unmarshal(resData, &resultResponse)
 	if err != nil {
